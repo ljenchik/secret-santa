@@ -20,7 +20,8 @@ int main()
 {
   int ser_sd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in server_addr;
-  char buffer[100];
+  char buffer[BUFFER_SIZE];
+  int zero = 0;
 
   socklen_t ser_addr_len = sizeof(server_addr);
 
@@ -34,9 +35,17 @@ int main()
   while (1)
   {
     memset(buffer, 0, sizeof(buffer));
-    recv(ser_sd, buffer, sizeof(buffer), 0);
-    printf("Received from the server: %s \n", buffer);
+    if (send(ser_sd, &zero, sizeof(zero), 0) == -1)
+    {
+      perror("Sending data failed");
+      exit(EXIT_FAILURE);
+    }
+    printf("Sent to server: %d \n", zero);
+
     sleep(5);
+
+    recv(ser_sd, buffer, sizeof(buffer), 0);
+    printf("Received from server: %s \n", buffer);
   }
 
   close(ser_sd);
