@@ -38,11 +38,19 @@ int main()
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(PORT);
 
-  bind(server_socket, (struct sockaddr *)&server_address, server_addr_len);
-
+  // Bind server socket to address
+  if (bind(server_socket, (struct sockaddr *)&server_address, server_addr_len) == -1)
+  {
+    perror("Socket binding failed");
+    exit(EXIT_FAILURE);
+  }
   // Prepare the server for incoming client requests
   // 10 is the maximum length for the queue of pending connections
-  listen(server_socket, 10);
+  if (listen(server_socket, 10) == -1)
+  {
+    perror("Listening failed");
+    exit(EXIT_FAILURE);
+  }
 
   printf("Server listening on port %d...\n", ntohs(server_address.sin_port));
 
@@ -59,9 +67,14 @@ int main()
     while (1)
     {
       strcpy(buffer, "hello");
-      send(sd, buffer, strlen(buffer), 0);
+      if (send(sd, buffer, strlen(buffer), 0) == -1)
+      {
+        perror("Sending data failed");
+        exit(EXIT_FAILURE);
+      }
       sleep(10);
     }
     close(sd);
   }
+  return 0;
 }
