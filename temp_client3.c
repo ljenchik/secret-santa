@@ -1,9 +1,3 @@
-// Create a server Client application
-// TCP connection
-// The client “register” to the server
-// The server every 5 minutes sends the current time
-// the client print the current time and “sleep” again
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -16,12 +10,23 @@
 #define PORT 12345
 #define BUFFER_SIZE 100
 
+typedef struct
+{
+  int number;
+  char name[BUFFER_SIZE];
+} data;
+
+#include <stdio.h>
+#include <stdlib.h>
+
 int main()
 {
   int ser_sd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in server_addr;
   char buffer[BUFFER_SIZE];
   int zero = 0;
+
+  data client_data;
 
   socklen_t ser_addr_len = sizeof(server_addr);
 
@@ -32,21 +37,26 @@ int main()
 
   connect(ser_sd, (struct sockaddr *)&server_addr, ser_addr_len);
 
-  while (1)
+  if (send(ser_sd, &zero, sizeof(zero), 0) == -1)
   {
-    memset(buffer, 0, sizeof(buffer));
-    if (send(ser_sd, &zero, sizeof(zero), 0) == -1)
-    {
-      perror("Sending data failed");
-      exit(EXIT_FAILURE);
-    }
-    printf("Sent to server: %d \n", zero);
-
-    sleep(5);
-
-    recv(ser_sd, buffer, sizeof(buffer), 0);
-    printf("Received from server: %s \n", buffer);
+    perror("Sending data failed");
+    exit(EXIT_FAILURE);
   }
+  printf("Sent to server: %d \n", zero);
+
+  sleep(5);
+
+  client_data.number = 1;
+  strcpy(client_data.name, "Chris");
+
+  if (send(ser_sd, &client_data, sizeof(client_data), 0) == -1)
+  {
+    perror("Sending data failed");
+    exit(EXIT_FAILURE);
+  }
+  printf("Sent to server: %d and %s \n", client_data.number, client_data.name);
+
+  sleep(5);
 
   close(ser_sd);
 
