@@ -1,7 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "linked_list_functions.h"
+// #include "linked_list_functions.h"
+
+typedef struct client
+{
+  char *name;
+  int sd;
+} Client;
+
+// Linked list to store clients' names and sockets' ids
+typedef struct client_list
+{
+  Client client;
+  Client giftee;
+  struct client_list *next;
+} Client_list;
 
 // Creating a new vlient
 Client_list *create_client(char *name, int sd)
@@ -85,7 +99,6 @@ Client_list *shift_list(Client_list *head)
     printf("Error: invalid pointer or insufficient clients for shifting\n");
     return NULL;
   }
-
   Client_list *current = head;
   while (1)
   {
@@ -115,7 +128,7 @@ void print_clients_and_giftees(Client_list *head)
     Client_list *current = head;
     printf("Santa\tSocket\tGiftee\tSocket\n");
     printf("\n");
-    while (current->next != NULL)
+    while (current != NULL)
     {
       printf("%s\t%d\t%s\t%d\n", current->client.name, current->client.sd, current->giftee.name, current->giftee.sd);
       printf("\n");

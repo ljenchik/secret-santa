@@ -6,7 +6,8 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <pthread.h>
-#include "linked_list_functions.h"
+#include "linked_list_functions.c"
+// #include "linked_list_functions.h"
 
 #define PORT 12345
 #define BUFFER_SIZE 100
@@ -55,7 +56,7 @@ int main(void)
   }
 
   printf("Server listening on port %d...\n", ntohs(server_address.sin_port));
-  Client_list *head = malloc(sizeof(Client_list));
+  Client_list *head = NULL;
 
   while (1)
   {
@@ -113,14 +114,6 @@ int main(void)
   }
   Client_list *modified_head = shift_list(head);
   print_clients_and_giftees(modified_head);
-
-  Client_list *last = get_last(modified_head);
-  printf("last client \n");
-  print_client(&last->client);
-  last->giftee = modified_head->client;
-
-  printf("last client giftee \n");
-  print_client(&last->giftee);
 
   // wait(NULL);
   close(server_socket);
