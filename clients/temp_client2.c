@@ -16,9 +16,6 @@ typedef struct
   char name[BUFFER_SIZE];
 } data;
 
-#include <stdio.h>
-#include <stdlib.h>
-
 int main()
 {
   int ser_sd = socket(AF_INET, SOCK_STREAM, 0);
@@ -47,7 +44,7 @@ int main()
   sleep(5);
 
   client_data.number = 1;
-  strcpy(client_data.name, "Ned");
+  strcpy(client_data.name, "Sally");
 
   if (send(ser_sd, &client_data, sizeof(client_data), 0) == -1)
   {

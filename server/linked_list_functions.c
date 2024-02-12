@@ -1,21 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define BUFFER_SIZE 100
-
-// Linked list to store clients' names
-typedef struct client
-{
-  char *name;
-  int sd;
-} Client;
-
-typedef struct client_list
-{
-  Client client;
-  struct client_list *next;
-} Client_list;
+#include "linked_list_functions.h"
 
 // Creating a new vlient
 Client_list *create_client(char *name, int sd)
@@ -23,7 +9,6 @@ Client_list *create_client(char *name, int sd)
   Client_list *new_client = malloc(sizeof(Client_list));
   new_client->client.name = malloc(strlen(name));
   strcpy(new_client->client.name, name);
-  // new_client->client.sd = malloc(sizeof(int));
   new_client->client.sd = sd;
   new_client->next = NULL;
   return new_client;
@@ -74,5 +59,67 @@ Client_list *add_client(Client_list *head, Client_list *new_client)
     new_client->next = head;
     head = new_client;
     return head;
+  }
+}
+
+Client_list *get_last(Client_list *head)
+{
+  if (head == NULL)
+  {
+    printf("List is empty\n");
+    return NULL;
+  }
+  Client_list *current = head;
+  while (current->next != NULL)
+  {
+    current = current->next;
+  }
+  return current;
+}
+
+// Shifting a linked list
+Client_list *shift_list(Client_list *head)
+{
+  if (head == NULL)
+  {
+    printf("Error: invalid pointer or insufficient clients for shifting\n");
+    return NULL;
+  }
+
+  Client_list *current = head;
+  while (1)
+  {
+    if (current->next == NULL)
+    {
+      current->giftee = head->client;
+      break;
+    }
+    else
+    {
+      current->giftee = current->next->client;
+      current = current->next;
+    }
+  }
+  return head;
+}
+
+// Printing all clients with giftees
+void print_clients_and_giftees(Client_list *head)
+{
+  if (head == NULL)
+  {
+    printf("Error: invalid pointer \n");
+  }
+  else
+  {
+    Client_list *current = head;
+    printf("Santa\tSocket\tGiftee\tSocket\n");
+    printf("\n");
+    while (current->next != NULL)
+    {
+      printf("%s\t%d\t%s\t%d\n", current->client.name, current->client.sd, current->giftee.name, current->giftee.sd);
+      printf("\n");
+      current = current->next;
+    }
   }
 }

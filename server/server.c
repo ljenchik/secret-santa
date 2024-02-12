@@ -6,7 +6,7 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <pthread.h>
-#include "linked_list_functions.c"
+#include "linked_list_functions.h"
 
 #define PORT 12345
 #define BUFFER_SIZE 100
@@ -20,7 +20,7 @@ typedef struct
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int main()
+int main(void)
 {
   int server_socket, client_socket, i;
   struct sockaddr_in server_address, client_address;
@@ -111,7 +111,17 @@ int main()
     // exit(0);
     // }
   }
-  print_clients(head);
+  Client_list *modified_head = shift_list(head);
+  print_clients_and_giftees(modified_head);
+
+  Client_list *last = get_last(modified_head);
+  printf("last client \n");
+  print_client(&last->client);
+  last->giftee = modified_head->client;
+
+  printf("last client giftee \n");
+  print_client(&last->giftee);
+
   // wait(NULL);
   close(server_socket);
   return 0;
