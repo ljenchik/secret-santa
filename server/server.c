@@ -66,6 +66,7 @@ int main(void)
       perror("Accept failed");
     };
 
+    printf("====================================================================\n");
     printf("New connection, socket is %d, IP is : %s, port : %d\n", client_socket,
            inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
 
@@ -76,45 +77,74 @@ int main(void)
     // if (pid == 0)
     // {
     // close(server_socket);
-    // Receive zero from a client as a signal to connect
+
+    // Receives zero from a client as a signal to connect
     if (recv(client_socket, &received_zero, sizeof(received_zero), 0) == -1)
     {
       perror("Receiving 0 failed");
       exit(EXIT_FAILURE);
     }
-
-    sleep(2);
+    else
+    {
+      memset(buffer, 0, BUFFER_SIZE);
+      strcpy(buffer, "Connection to the server successfull\n");
+      send(client_socket, buffer, strlen(buffer), 0);
+    }
 
     if (recv(client_socket, &client_data, sizeof(client_data), 0) == -1)
     {
-      perror("Receiving 1 failed");
+      perror("Receiving client's data failed");
       exit(EXIT_FAILURE);
     }
-
-    printf("Client is registered with name %s \n", client_data.name);
-    number_of_clients++;
-    printf("number of clients %d \n", number_of_clients);
-
-    sleep(2);
-
-    Client_list *new_client = create_client(client_data.name, client_socket);
-    pthread_mutex_lock(&mutex);
-    head = add_client(head, new_client);
-    pthread_mutex_unlock(&mutex);
-    printf("Client's name is added to the list \n");
-
-    if (number_of_clients == 3)
+    else
     {
-      break;
+      // Client sends 1 as a signal to register
+      if (client_data.number == 1)
+      {
+        memset(buffer, 0, BUFFER_SIZE);
+        strcpy(buffer, "Registration with the server successfull\n");
+        send(client_socket, buffer, strlen(buffer), 0);
+
+        // Creating a client to add to a linked list
+        Client_list *new_client = create_client(client_data.name, client_socket);
+        pthread_mutex_lock(&mutex);
+        head = add_client(head, new_client);
+        pthread_mutex_unlock(&mutex);
+        printf("%s is registered \n", client_data.name);
+        number_of_clients++;
+
+        if (number_of_clients == 4)
+        {
+          head = shift_list(head);
+          printf("====================================================================\n");
+          print_clients_and_giftees(head);
+
+          Client_list *current = head;
+
+          while (current != NULL)
+          {
+            memset(buffer, 0, BUFFER_SIZE);
+            strcpy(buffer, current->giftee.name);
+            if (send(current->client.sd, buffer, strlen(buffer), 0) == -1)
+            {
+              perror("Sending giftee name failed");
+              exit(EXIT_FAILURE);
+            }
+            current = current->next;
+          }
+        }
+      }
+      else
+      {
+        perror("Registration error");
+        exit(EXIT_FAILURE);
+      }
+
+      //   close(client_socket);
+      // exit(0);
+      // }
     }
-
-    //   close(client_socket);
-    // exit(0);
-    // }
   }
-  Client_list *modified_head = shift_list(head);
-  print_clients_and_giftees(modified_head);
-
   // wait(NULL);
   close(server_socket);
   return 0;

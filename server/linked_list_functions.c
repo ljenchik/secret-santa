@@ -23,6 +23,7 @@ Client_list *create_client(char *name, int sd)
   Client_list *new_client = malloc(sizeof(Client_list));
   new_client->client.name = malloc(strlen(name));
   strcpy(new_client->client.name, name);
+
   new_client->client.sd = sd;
   new_client->next = NULL;
   return new_client;
