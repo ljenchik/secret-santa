@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include "linked_list_functions.h"
 
 typedef struct client
 {
@@ -18,12 +17,10 @@ typedef struct client_list
 } Client_list;
 
 // Creating a new vlient
-Client_list *create_client(char *name, int sd)
+Client_list *create_client(int sd)
 {
   Client_list *new_client = malloc(sizeof(Client_list));
-  new_client->client.name = malloc(strlen(name));
-  strcpy(new_client->client.name, name);
-
+  new_client->client.name = NULL;
   new_client->client.sd = sd;
   new_client->next = NULL;
   return new_client;
