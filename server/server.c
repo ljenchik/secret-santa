@@ -96,7 +96,7 @@ int main(void)
       int received = recv(current->client.sd, &message, sizeof(message), 0);
       if (received > 0)
       {
-        receive_from_client(client_socket, &message + received, sizeof(message) - received, "Invalid client message\n");
+        receive_from_client(client_socket, &message + received, sizeof(message) - received, "Invalid client message");
         if (message == 2)
         {
           // Begin draw
@@ -120,18 +120,18 @@ int main(void)
         {
           // Receives zero from a client as a signal to connect
           memset(buffer, 0, BUFFER_SIZE);
-          strcpy(buffer, "Connection to the server successfull\n");
+          strcpy(buffer, "Connection to the server successfull");
           // Sends a successful connection message to a client
           send_to_client(client_socket, buffer, strlen(buffer), 0);
         }
         else if (message == 1)
         {
           int name_len;
-          receive_from_client(client_socket, &name_len, sizeof(name_len), "read of name lenght failed");
+          receive_from_client(client_socket, &name_len, sizeof(name_len), "Failed to read name length");
           char *name = malloc(name_len);
-          receive_from_client(client_socket, name, name_len, "falied to read name");
+          receive_from_client(client_socket, name, name_len, "Falied to read name");
           current->client.name = name;
-          printf("new client registered, name: %s\n", name);
+          printf("New client registered, name: %s\n", name);
         }
       }
 
