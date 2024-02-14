@@ -87,11 +87,12 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
       }
       // Printing giftee's name
+      sleep(2);
       printf("%s, your giftee is %s", name, buffer);
       printf("\n");
     }
   }
-  sleep(5);
+  sleep(2);
   close(ser_sd);
   return 0;
 }
