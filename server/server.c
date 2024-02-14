@@ -4,14 +4,15 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include "linked_list_functions.h"
+
 #include "send_receive_functions.h"
+#include "linked_list_functions.h"
 
 #define PORT 12345
 #define BUFFER_SIZE 100
 #define MAX_CLIENTS 100
 
-Client_list *head;
+Client_list *head = NULL;
 pthread_mutex_t mutex;
 char buffer[BUFFER_SIZE];
 int number_of_clients = 0;
@@ -115,8 +116,6 @@ int main(void)
   }
 
   printf("Server listening on port %d...\n", ntohs(server_address.sin_port));
-  Client_list *head = NULL;
-  Client_list *current = head;
 
   while (1)
   {

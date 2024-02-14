@@ -7,13 +7,12 @@ void receive_from_client(int client_socket, void *buffer, int size_to_receive, c
   do
   {
     int read_bytes = recv(client_socket, buffer + received_bytes, size_to_receive, 0);
-    // EAGAIN non-blocking
     if (read_bytes == -1)
     {
       perror(error);
       exit(EXIT_FAILURE);
     }
-    else if (read > 0)
+    else if (read_bytes > 0)
     {
       received_bytes += read_bytes;
       size_to_receive -= read_bytes;

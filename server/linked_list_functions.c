@@ -58,21 +58,6 @@ Client_list *add_client(Client_list *head, Client_list *new_client)
   }
 }
 
-Client_list *get_last(Client_list *head)
-{
-  if (head == NULL)
-  {
-    printf("List is empty");
-    return NULL;
-  }
-  Client_list *current = head;
-  while (current->next != NULL)
-  {
-    current = current->next;
-  }
-  return current;
-}
-
 // Shifting a linked list
 Client_list *shift_list(Client_list *head)
 {
