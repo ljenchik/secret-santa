@@ -3,53 +3,99 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <sys/select.h>
-#include <sys/types.h>
-#include <errno.h>
-#include "linked_list_functions.c"
-#include "send_receive_functions.c"
+#include <pthread.h>
+#include "linked_list_functions.h"
+#include "send_receive_functions.h"
 
 #define PORT 12345
 #define BUFFER_SIZE 100
 #define MAX_CLIENTS 100
 
-// Structure for data when clients is rending a register request
-typedef struct
+Client_list *head;
+pthread_mutex_t mutex;
+char buffer[BUFFER_SIZE];
+int number_of_clients = 0;
+
+void *handle_client_thread(void *arg)
 {
-  int number;
-  char name[BUFFER_SIZE];
-} data;
+  int client_socket = *((int *)arg);
+  // Creating a new client
+  Client_list *new_client = create_client(client_socket);
+  // Adding a new client to a linked list, protecting client's name with mutex while adding
+  pthread_mutex_lock(&mutex);
+  head = add_client(head, new_client);
+  number_of_clients++;
+  pthread_mutex_unlock(&mutex);
+
+  int message = 0;
+  // Continuously looping trying to receive a message from a client
+  while (1)
+  {
+    // Receiving message from a client
+    int received = recv(client_socket, &message, sizeof(message), 0);
+    // Checking if server received any bytes
+    if (received > 0)
+    {
+      receive_from_client(client_socket, &message + received, sizeof(message) - received, "Invalid client message");
+      if (message == 0)
+      {
+        // Receives zero from a client as a signal to connect
+        memset(buffer, 0, BUFFER_SIZE);
+        strcpy(buffer, "Connection to the server successfull");
+        // Sends a successful connection message to a client
+        send_to_client(client_socket, buffer, strlen(buffer), 0);
+      }
+      else if (message == 1)
+      {
+        // Receiving name length from a client
+        int name_len;
+        receive_from_client(client_socket, &name_len, sizeof(name_len), "Failed to read name length");
+        char *name = malloc(name_len);
+        if (name == NULL)
+        {
+          perror("Failed to allocate memory for client's name");
+          continue;
+        }
+        // Receiving name from a client
+        receive_from_client(client_socket, name, name_len, "Falied to read name");
+        new_client->client.name = name;
+        printf("New client registered, name: %s\n", name);
+      }
+      else if (message == 2 && number_of_clients > 1)
+      {
+        printf("===========================DRAW============================\n");
+        // Shiftin a linked list and adding giftees' names to Client_list nodes
+        head = shift_list(head);
+        print_clients_and_giftees(head);
+        Client_list *temp = head;
+        while (temp != NULL)
+        {
+          memset(buffer, 0, BUFFER_SIZE);
+          strcpy(buffer, temp->giftee.name);
+          // Sending giftee's name to their Secret Santa
+          send_to_client(temp->client.sd, buffer, strlen(buffer), "Sending giftee name failed");
+          temp = temp->next;
+        }
+      }
+    }
+  }
+  sleep(2);
+  close(client_socket);
+  pthread_exit(NULL);
+}
 
 int main(void)
 {
   int server_socket, client_socket;
   struct sockaddr_in server_address, client_address;
-
   socklen_t client_addr_len = sizeof(client_address);
   socklen_t server_addr_len = sizeof(server_address);
 
-  char buffer[BUFFER_SIZE];
+  pthread_mutex_init(&mutex, NULL);
 
-  int received_zero, received_one, received_two;
-
-  data client_data;
-
-  int number_of_clients = 0;
+  pthread_t client_thread;
 
   server_socket = socket(AF_INET, SOCK_STREAM, 0);
-
-  // Sets the socket to non-blocking mode
-  //  It retrieves the current file status flags of the socket using fcntl(server_socket, F_GETFL, 0)
-  //  and then sets the O_NONBLOCK flag by performing a bitwise OR operation with the existing flags.
-  //  The F_SETFL command is used to set the file status flags.
-
-  int status = fcntl(server_socket, F_SETFL, fcntl(server_socket, F_GETFL, 0) | O_NONBLOCK);
-
-  if (status == -1)
-  {
-    perror("calling fcntl");
-  }
-
   server_address.sin_addr.s_addr = INADDR_ANY;
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(PORT);
@@ -70,74 +116,39 @@ int main(void)
 
   printf("Server listening on port %d...\n", ntohs(server_address.sin_port));
   Client_list *head = NULL;
+  Client_list *current = head;
 
   while (1)
   {
     // Accepting a new connection
     if ((client_socket = accept(server_socket, (struct sockaddr *)&client_address, &client_addr_len)) > 0)
     {
-
-      printf("=================================================\n");
+      printf("===========================================================\n");
       printf("New connection, socket is %d, IP is : %s, port : %d\n", client_socket,
              inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
 
-      // Creating a client to add to a linked list
-      Client_list *new_client = create_client(client_socket);
-      head = add_client(head, new_client);
-      number_of_clients++;
-    }
-
-    // Trying to get message from all clients to start the draw
-    Client_list *current = head;
-    while (current != NULL)
-    {
-      int message = 0;
-      int client_socket = current->client.sd;
-      int received = recv(current->client.sd, &message, sizeof(message), 0);
-      if (received > 0)
+      // Creating a new thread to handle client communication
+      int *client_socket_ptr = malloc(sizeof(int));
+      if (client_socket_ptr == NULL)
       {
-        receive_from_client(client_socket, &message + received, sizeof(message) - received, "Invalid client message");
-        if (message == 2)
-        {
-          // Begin draw
-          if (number_of_clients > 1 && number_of_clients <= MAX_CLIENTS)
-          {
-            printf("============== DRAW =================\n");
-            head = shift_list(head);
-            print_clients_and_giftees(head);
-
-            Client_list *temp = head;
-            while (temp != NULL)
-            {
-              memset(buffer, 0, BUFFER_SIZE);
-              strcpy(buffer, temp->giftee.name);
-              send_to_client(temp->client.sd, buffer, strlen(buffer), "Sending giftee name failed");
-              temp = temp->next;
-            }
-          }
-        }
-        else if (message == 0)
-        {
-          // Receives zero from a client as a signal to connect
-          memset(buffer, 0, BUFFER_SIZE);
-          strcpy(buffer, "Connection to the server successfull");
-          // Sends a successful connection message to a client
-          send_to_client(client_socket, buffer, strlen(buffer), 0);
-        }
-        else if (message == 1)
-        {
-          int name_len;
-          receive_from_client(client_socket, &name_len, sizeof(name_len), "Failed to read name length");
-          char *name = malloc(name_len);
-          receive_from_client(client_socket, name, name_len, "Falied to read name");
-          current->client.name = name;
-          printf("New client registered, name: %s\n", name);
-        }
+        perror("Failed to allocate memory for client socket");
+        continue;
       }
+      *client_socket_ptr = client_socket;
 
-      current = current->next;
+      if (pthread_create(&client_thread, NULL, handle_client_thread, (void *)client_socket_ptr) != 0)
+      {
+        perror("Failed to create thread");
+        close(client_socket);
+        free(client_socket_ptr);
+      }
     }
-    sleep(1);
+    sleep(2);
+  }
+  // Joining all thtreads to main
+  for (int i = 0; i < number_of_clients; i++)
+  {
+    pthread_join(client_thread, NULL);
   }
   close(server_socket);
   return 0;

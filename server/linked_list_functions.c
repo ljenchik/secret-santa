@@ -1,20 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-typedef struct client
-{
-  char *name;
-  int sd;
-} Client;
-
-// Linked list to store clients' names and sockets' ids
-typedef struct client_list
-{
-  Client client;
-  Client giftee;
-  struct client_list *next;
-} Client_list;
+#include "linked_list_functions.h"
 
 // Creating a new vlient
 Client_list *create_client(int sd)
@@ -58,7 +42,7 @@ Client_list *add_client(Client_list *head, Client_list *new_client)
 {
   if (head == NULL && new_client == NULL)
   {
-    printf("Error: invalid pointer, no client to add \n");
+    printf("Error: invalid pointer, no client to add");
     return NULL;
   }
   if (head == NULL && new_client != NULL)
@@ -78,7 +62,7 @@ Client_list *get_last(Client_list *head)
 {
   if (head == NULL)
   {
-    printf("List is empty\n");
+    printf("List is empty");
     return NULL;
   }
   Client_list *current = head;
@@ -119,7 +103,7 @@ void print_clients_and_giftees(Client_list *head)
 {
   if (head == NULL)
   {
-    printf("Error: invalid pointer \n");
+    printf("Error: invalid pointer");
   }
   else
   {

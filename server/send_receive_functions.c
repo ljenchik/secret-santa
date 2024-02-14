@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
+#include "send_receive_functions.h"
 
 // Receives data from client with message length and error
 void receive_from_client(int client_socket, void *buffer, int size_to_receive, char *error)
@@ -13,7 +8,7 @@ void receive_from_client(int client_socket, void *buffer, int size_to_receive, c
   {
     int read_bytes = recv(client_socket, buffer + received_bytes, size_to_receive, 0);
     // EAGAIN non-blocking
-    if (read_bytes == -1 && errno != EAGAIN)
+    if (read_bytes == -1)
     {
       perror(error);
       exit(EXIT_FAILURE);
