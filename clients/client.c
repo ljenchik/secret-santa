@@ -61,9 +61,9 @@ int main(int argc, char *argv[])
   }
   else
   {
-    if (strcmp(buffer, "Connection to the server successfull") == 0)
+    if (strcmp(buffer, "Connection to the server successful") == 0)
     {
-      // Printing "Connection to the server successfull\n"
+      // Printing "Connection to the server successful"
       printf("%s \n", buffer);
 
       // Sending 1, length of name, name
@@ -74,22 +74,32 @@ int main(int argc, char *argv[])
       send_to_server(ser_sd, name, name_len, "Sending name failed");
       printf("Sent to server: %d, %s, %d \n", message, name, name_len);
 
-      if (draw)
-      {
-        int draw = 2;
-        send_to_server(ser_sd, &draw, sizeof(draw), "Sending draw failed");
-      }
-
-      memset(buffer, 0, BUFFER_SIZE);
       if (recv(ser_sd, &buffer, sizeof(buffer), 0) == -1)
       {
-        perror("Receiving giftee failed");
+        perror("Receiving registration confirmation failed");
         exit(EXIT_FAILURE);
       }
-      // Printing giftee's name
-      sleep(2);
-      printf("%s, your giftee is %s", name, buffer);
-      printf("\n");
+      else
+      {
+        printf("%s \n", buffer);
+
+        if (draw)
+        {
+          int draw = 2;
+          send_to_server(ser_sd, &draw, sizeof(draw), "Sending draw failed");
+        }
+
+        memset(buffer, 0, BUFFER_SIZE);
+        if (recv(ser_sd, &buffer, sizeof(buffer), 0) == -1)
+        {
+          perror("Receiving giftee failed");
+          exit(EXIT_FAILURE);
+        }
+        // Printing giftee's name
+        sleep(2);
+        printf("%s, your giftee is %s", name, buffer);
+        printf("\n");
+      }
     }
   }
   sleep(2);
