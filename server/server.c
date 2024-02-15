@@ -5,8 +5,8 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
-#include "send_receive_functions.h"
-#include "linked_list_functions.h"
+#include "send_receive_functions.c"
+#include "linked_list_functions.c"
 
 #define PORT 12345
 #define BUFFER_SIZE 100
@@ -42,8 +42,8 @@ void *handle_client_thread(void *arg)
       {
         // Receives zero from a client as a signal to connect
         memset(buffer, 0, BUFFER_SIZE);
-        strcpy(buffer, "Connection to the server successfull");
-        // Sends a successful connection message to a client
+        strcpy(buffer, "Connection to the server successful");
+        // Sends a "Connection to the server successful" message to a client
         send_to_client(client_socket, buffer, strlen(buffer), 0);
       }
       else if (message == 1)
@@ -61,6 +61,10 @@ void *handle_client_thread(void *arg)
         receive_from_client(client_socket, name, name_len, "Falied to read name");
         new_client->client.name = name;
         printf("New client registered, name: %s\n", name);
+        memset(buffer, 0, BUFFER_SIZE);
+        strcpy(buffer, "Registration to the server successful");
+        // Sends a "Registration to the server successful" message to a client
+        send_to_client(client_socket, buffer, strlen(buffer), 0);
       }
       else if (message == 2 && number_of_clients > 1)
       {
