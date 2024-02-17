@@ -1,4 +1,8 @@
-#include "send_receive_functions.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
 // Receives data from client with message length and error
 void receive_from_client(int client_socket, void *buffer, int size_to_receive, char *error)
@@ -6,7 +10,7 @@ void receive_from_client(int client_socket, void *buffer, int size_to_receive, c
   int received_bytes = 0;
   do
   {
-    int read_bytes = recv(client_socket, buffer + received_bytes, size_to_receive, 0);
+    int read_bytes = recv(client_socket, (char *)buffer + received_bytes, size_to_receive, 0);
     if (read_bytes == -1)
     {
       perror(error);
@@ -31,7 +35,7 @@ void send_to_client(int client_socket, void *buffer, int size_to_send, char *err
   int sent = 0;
   do
   {
-    int sent_bytes = send(client_socket, buffer + sent, size_to_send, 0);
+    int sent_bytes = send(client_socket, (char *)buffer + sent, size_to_send, 0);
     if (sent_bytes == -1)
     {
       perror(error);

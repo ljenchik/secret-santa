@@ -1,4 +1,20 @@
-#include "linked_list_functions.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct client
+{
+  char *name;
+  int sd;
+} Client;
+
+// Linked list to store clients' names and sockets' ids
+typedef struct client_list
+{
+  Client client;
+  Client giftee;
+  struct client_list *next;
+} Client_list;
 
 // Creating a new vlient
 Client_list *create_client(int sd)
@@ -58,7 +74,9 @@ Client_list *add_client(Client_list *head, Client_list *new_client)
   }
 }
 
-// Shifting a linked list
+// Shifting a linked list by one node, therefore each client (as a santa)
+// will get a present for the next client in the list
+// The last client will get a gift to the first one
 Client_list *shift_list(Client_list *head)
 {
   if (head == NULL)
